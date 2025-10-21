@@ -242,6 +242,7 @@ Kontribusi sangat diterima! Untuk berkontribusi:
 Project ini dilisensikan di bawah **MIT License** - lihat file [LICENSE](LICENSE) untuk detail lengkap.
 
 ## 👨‍💻 Author
+- Rizky Kurnia Antasari
 
 **Pancasila Education Platform**
 - Platform edukasi interaktif untuk pembelajaran Pancasila
