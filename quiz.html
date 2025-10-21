@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kuis Pancasila - Pancasila Edu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            transform: translateX(5px);
+            border-color: #DC2626;
+            background-color: #FEF2F2;
+        }
+
+        .quiz-option.selected {
+            background-color: #DBEAFE;
+            border-color: #3B82F6;
+            transform: scale(1.02);
+        }
+
+        .quiz-option.correct {
+            background-color: #D1FAE5;
+            border-color: #10B981;
+            animation: correctAnim 0.5s ease;
+        }
+
+        .quiz-option.incorrect {
+            background-color: #FEE2E2;
+            border-color: #EF4444;
+            animation: shake 0.5s ease;
+        }
+
+        .quiz-option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        @keyframes correctAnim {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #DC2626;
+            position: absolute;
+            animation: confetti-fall 3s linear;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-b from-red-50 via-white to-red-50 min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <img src="img/garuda.jpg" alt="Logo Pancasila" class="w-10 h-10">
+                    <div>
+                        <h1 class="font-bold text-xl tracking-wide">Pancasila Edu</h1>
+                        <p class="text-xs text-red-100">Kuis Interaktif</p>
+                    </div>
+                </div>
+
+                <a href="index.html" class="text-sm font-medium hover:text-yellow-300 transition">
+                    ← Kembali ke Beranda
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- QUIZ CONTAINER -->
+    <div class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- QUIZ START SCREEN -->
+        <div id="quiz-start" class="fade-in">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 md:p-12 justify-center  flex flex-col text-center">
+                <img src="img/garuda.jpg" alt="Logo Pancasila" class="mx-auto w-24 h-24">
+
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Kuis Pancasila</h2>
+                <p class="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+                    Uji pemahamanmu tentang Pancasila, sejarah, dan penerapannya dalam kehidupan sehari-hari!
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto">
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <div class="text-3xl font-bold text-red-600">15</div>
+                        <div class="text-sm text-gray-600">Pertanyaan</div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-3xl font-bold text-blue-600">4</div>
+                        <div class="text-sm text-gray-600">Pilihan</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="text-3xl font-bold text-green-600">~10</div>
+                        <div class="text-sm text-gray-600">Menit</div>
+                    </div>
+                </div>
+
+                <button onclick="startQuiz()"
+                    class="bg-gradient-to-r from-red-600 to-red-700 text-white px-10 py-4 rounded-full hover:shadow-xl transition font-bold text-lg transform hover:scale-105">
+                    🎯 Mulai Kuis
+                </button>
+            </div>
+        </div>
+
+        <!-- QUIZ QUESTIONS -->
+        <div id="quiz-questions" class="hidden">
+            <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <div class="text-sm font-semibold text-gray-500">
+                        Pertanyaan <span id="current-question-num" class="text-red-600">1</span> / <span
+                            id="total-questions">15</span>
+                    </div>
+                    <div class="text-sm font-semibold">
+                        Skor: <span id="current-score" class="text-red-600">0</span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-6">
+                    <div class="bg-gray-200 h-3 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="progress-bar h-full bg-gradient-to-r from-red-600 to-red-700"
+                            style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Question -->
+                <div class="mb-6">
+                    <h3 id="question-text" class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed"></h3>
+                </div>
+
+                <!-- Options -->
+                <div id="options-container" class="space-y-3 mb-6">
+                    <!-- Options will be inserted here -->
+                </div>
+
+                <!-- Feedback -->
+                <div id="feedback" class="hidden p-4 rounded-lg mb-6"></div>
+
+                <!-- Next Button -->
+                <button id="next-btn" onclick="nextQuestion()"
+                    class="hidden w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-4 rounded-lg font-bold hover:shadow-lg transition">
+                    Lanjut ke Pertanyaan Berikutnya →
+                </button>
+            </div>
+
+            <!-- Timer (Optional) -->
+            <div class="mt-4 text-center text-gray-500 text-sm">
+                <span id="timer"></span>
+            </div>
+        </div>
+
+        <!-- QUIZ RESULT -->
+        <div id="quiz-result" class="hidden fade-in">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 md:p-12">
+                <div class="text-center mb-8">
+                    <div id="result-icon" class="mb-6"></div>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Kuis Selesai!</h2>
+
+                    <!-- Score Display -->
+                    <div
+                        class="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl p-6 mb-6 max-w-md mx-auto">
+                        <div class="text-5xl font-bold mb-2">
+                            <span id="final-score">0</span> / <span id="final-total">15</span>
+                        </div>
+                        <div class="text-xl">Skor Anda</div>
+                    </div>
+
+                    <!-- Performance Message -->
+                    <div id="performance-message" class="text-lg text-gray-600 mb-6 max-w-2xl mx-auto"></div>
+
+                    <!-- Score Breakdown -->
+                    <div class="grid md:grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto">
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <div class="text-3xl font-bold text-green-600" id="correct-count">0</div>
+                            <div class="text-sm text-gray-600">Benar</div>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <div class="text-3xl font-bold text-red-600" id="incorrect-count">0</div>
+                            <div class="text-sm text-gray-600">Salah</div>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <div class="text-3xl font-bold text-blue-600" id="percentage">0</div>
+                            <div class="text-sm text-gray-600">Persentase</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="restartQuiz()"
+                        class="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-full hover:shadow-xl transition font-bold transform hover:scale-105">
+                        🔄 Ulangi Kuis
+                    </button>
+                    <a href="index.html"
+                        class="bg-white text-red-600 border-2 border-red-600 px-8 py-4 rounded-full hover:bg-red-50 transition font-bold text-center">
+                        📚 Pelajari Lagi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white py-6 mt-12">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <p class="text-gray-400 text-sm">© 2025 Pancasila Edu. Dibuat dengan ❤️ untuk Indonesia</p>
+        </div>
+    </footer>
+
+    <script>
+        // Quiz Data
+        const quizData = [
+            {
+                question: "Siapa tokoh yang menyampaikan pidato tentang dasar negara pada tanggal 1 Juni 1945?",
+                options: ["Mohammad Hatta", "Ir. Soekarno", "Ki Hajar Dewantara", "Soepomo"],
+                correct: 1,
+                explanation: "Ir. Soekarno menyampaikan pidato tentang Pancasila pada 1 Juni 1945, yang kemudian diperingati sebagai Hari Lahir Pancasila."
+            },
+            {
+                question: "Apa lambang dari sila pertama Pancasila?",
+                options: ["Rantai emas", "Pohon beringin", "Bintang emas", "Kepala banteng"],
+                correct: 2,
+                explanation: "Bintang emas berlatar hitam melambangkan sila pertama 'Ketuhanan Yang Maha Esa'."
+            },
+            {
+                question: "Sila kedua Pancasila berbunyi...",
+                options: [
+                    "Ketuhanan Yang Maha Esa",
+                    "Kemanusiaan yang Adil dan Beradab",
+                    "Persatuan Indonesia",
+                    "Keadilan Sosial bagi Seluruh Rakyat Indonesia"
+                ],
+                correct: 1,
+                explanation: "Sila kedua adalah 'Kemanusiaan yang Adil dan Beradab' yang dilambangkan dengan rantai emas."
+            },
+            {
+                question: "Kapan Pancasila disahkan sebagai dasar negara Indonesia?",
+                options: ["17 Agustus 1945", "18 Agustus 1945", "1 Juni 1945", "22 Juni 1945"],
+                correct: 1,
+                explanation: "Pancasila disahkan sebagai dasar negara pada 18 Agustus 1945, sehari setelah proklamasi kemerdekaan."
+            },
+            {
+                question: "Apa makna dari semboyan 'Bhinneka Tunggal Ika'?",
+                options: [
+                    "Berbeda-beda tetapi tetap satu",
+                    "Bersatu kita teguh",
+                    "Satu untuk semua",
+                    "Gotong royong"
+                ],
+                correct: 0,
+                explanation: "'Bhinneka Tunggal Ika' berarti berbeda-beda tetapi tetap satu, mencerminkan keberagaman Indonesia yang tetap bersatu."
+            },
+            {
+                question: "Sila keempat Pancasila dilambangkan dengan...",
+                options: ["Bintang", "Rantai", "Kepala banteng", "Padi dan kapas"],
+                correct: 2,
+                explanation: "Kepala banteng melambangkan sila keempat tentang kerakyatan dan musyawarah."
+            },
+            {
+                question: "Nilai gotong royong dan tolong-menolong merupakan pengamalan dari sila ke...",
+                options: ["Kedua", "Ketiga", "Keempat", "Kelima"],
+                correct: 3,
+                explanation: "Gotong royong adalah salah satu pengamalan sila kelima tentang keadilan sosial."
+            },
+            {
+                question: "Apa nama dokumen yang menjadi cikal bakal Pembukaan UUD 1945?",
+                options: ["Piagam Jakarta", "Dekrit Presiden", "Konstitusi RIS", "Supersemar"],
+                correct: 0,
+                explanation: "Piagam Jakarta yang dirumuskan pada 22 Juni 1945 menjadi cikal bakal Pembukaan UUD 1945."
+            },
+            {
+                question: "Sikap toleransi antar umat beragama merupakan pengamalan dari sila ke...",
+                options: ["Pertama", "Kedua", "Ketiga", "Kelima"],
+                correct: 0,
+                explanation: "Toleransi beragama adalah pengamalan dari sila pertama 'Ketuhanan Yang Maha Esa'."
+            },
+            {
+                question: "Lambang padi dan kapas pada Pancasila melambangkan...",
+                options: [
+                    "Ketuhanan Yang Maha Esa",
+                    "Persatuan Indonesia",
+                    "Kerakyatan",
+                    "Keadilan Sosial"
+                ],
+                correct: 3,
+                explanation: "Padi dan kapas melambangkan sila kelima tentang keadilan sosial dan kesejahteraan rakyat."
+            },
+            {
+                question: "Berapa jumlah butir pengamalan Pancasila dalam P4 (Pedoman Penghayatan dan Pengamalan Pancasila)?",
+                options: ["36 butir", "45 butir", "50 butir", "54 butir"],
+                correct: 1,
+                explanation: "P4 memiliki 45 butir pengamalan yang mencakup kelima sila Pancasila."
+            },
+            {
+                question: "Contoh sikap yang TIDAK mencerminkan sila ketiga adalah...",
+                options: [
+                    "Cinta tanah air",
+                    "Mengutamakan kepentingan pribadi",
+                    "Bangga sebagai bangsa Indonesia",
+                    "Rela berkorban untuk bangsa"
+                ],
+                correct: 1,
+                explanation: "Mengutamakan kepentingan pribadi bertentangan dengan sila ketiga yang menekankan persatuan dan kepentingan bangsa."
+            },
+            {
+                question: "Musyawarah untuk mufakat merupakan nilai dari sila ke...",
+                options: ["Kedua", "Ketiga", "Keempat", "Kelima"],
+                correct: 2,
+                explanation: "Musyawarah untuk mufakat adalah inti dari sila keempat Pancasila."
+            },
+            {
+                question: "Siapa yang memimpin Panitia Sembilan dalam merumuskan Piagam Jakarta?",
+                options: ["Ir. Soekarno", "Mohammad Hatta", "Soepomo", "Ki Hajar Dewantara"],
+                correct: 0,
+                explanation: "Ir. Soekarno memimpin Panitia Sembilan yang merumuskan Piagam Jakarta pada 22 Juni 1945."
+            },
+            {
+                question: "Contoh pengamalan sila kedua dalam kehidupan sehari-hari adalah...",
+                options: [
+                    "Beribadah sesuai agama",
+                    "Tidak membeda-bedakan teman berdasarkan suku",
+                    "Ikut pemilihan umum",
+                    "Menghemat listrik"
+                ],
+                correct: 1,
+                explanation: "Tidak membeda-bedakan berdasarkan suku mencerminkan nilai kemanusiaan yang adil dan beradab."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let startTime;
+
+        // Start Quiz
+        function startQuiz() {
+            document.getElementById('quiz-start').classList.add('hidden');
+            document.getElementById('quiz-questions').classList.remove('hidden');
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            startTime = Date.now();
+
+            // Shuffle questions for variety
+            shuffleArray(quizData);
+
+            loadQuestion();
+        }
+
+        // Shuffle array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Load Question
+        function loadQuestion() {
+            const question = quizData[currentQuestionIndex];
+
+            // Update UI
+            document.getElementById('current-question-num').textContent = currentQuestionIndex + 1;
+            document.getElementById('total-questions').textContent = quizData.length;
+            document.getElementById('current-score').textContent = score;
+            document.getElementById('question-text').textContent = question.question;
+
+            // Update progress bar
+            const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+
+            // Hide feedback and next button
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+
+            // Load options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'quiz-option border-2 border-gray-200 p-4 rounded-lg';
+                optionDiv.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
+              ${String.fromCharCode(65 + index)}
+            </div>
+            <div class="flex-grow">${option}</div>
+          </div>
+        `;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+        }
+
+        // Select Answer
+        function selectAnswer(selectedIndex) {
+            const question = quizData[currentQuestionIndex];
+            const options = document.querySelectorAll('.quiz-option');
+
+            // Disable all options
+            options.forEach(opt => {
+                opt.classList.add('disabled');
+                opt.onclick = null;
+            });
+
+            // Mark selected option
+            options[selectedIndex].classList.add('selected');
+
+            // Check if correct
+            const isCorrect = selectedIndex === question.correct;
+
+            // Show feedback
+            setTimeout(() => {
+                options[question.correct].classList.add('correct');
+
+                if (!isCorrect) {
+                    options[selectedIndex].classList.remove('selected');
+                    options[selectedIndex].classList.add('incorrect');
+                } else {
+                    score++;
+                    document.getElementById('current-score').textContent = score;
+                }
+
+                // Show feedback message
+                const feedback = document.getElementById('feedback');
+                feedback.classList.remove('hidden');
+
+                if (isCorrect) {
+                    feedback.className = 'p-4 rounded-lg bg-green-100 border-2 border-green-500';
+                    feedback.innerHTML = `
+            <div class="flex items-start gap-3">
+              <div class="text-2xl">✅</div>
+              <div>
+                <strong class="text-green-800 font-bold">Jawaban Benar!</strong>
+                <p class="text-green-700 mt-1">${question.explanation}</p>
+              </div>
+            </div>
+          `;
+                } else {
+                    feedback.className = 'p-4 rounded-lg bg-red-100 border-2 border-red-500';
+                    feedback.innerHTML = `
+            <div class="flex items-start gap-3">
+              <div class="text-2xl">❌</div>
+              <div>
+                <strong class="text-red-800 font-bold">Jawaban Kurang Tepat</strong>
+                <p class="text-red-700 mt-1">Jawaban yang benar: <strong>${question.options[question.correct]}</strong></p>
+                <p class="text-red-600 mt-2 text-sm">${question.explanation}</p>
+              </div>
+            </div>
+          `;
+                }
+
+                // Show next button
+                document.getElementById('next-btn').classList.remove('hidden');
+
+                // Save user answer
+                userAnswers.push({
+                    question: question.question,
+                    selected: selectedIndex,
+                    correct: question.correct,
+                    isCorrect: isCorrect
+                });
+            }, 300);
+        }
+
+        // Next Question
+        function nextQuestion() {
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        // Show Result
+        function showResult() {
+            document.getElementById('quiz-questions').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+
+            const totalQuestions = quizData.length;
+            const correctAnswers = score;
+            const incorrectAnswers = totalQuestions - score;
+            const percentage = Math.round((score / totalQuestions) * 100);
+
+            // Update result display
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-total').textContent = totalQuestions;
+            document.getElementById('correct-count').textContent = correctAnswers;
+            document.getElementById('incorrect-count').textContent = incorrectAnswers;
+            document.getElementById('percentage').textContent = percentage + '%';
+
+            // Show icon and message based on score
+            const resultIcon = document.getElementById('result-icon');
+            const performanceMessage = document.getElementById('performance-message');
+
+            if (percentage >= 90) {
+                resultIcon.innerHTML = '<div class="text-7xl animate-bounce">🏆</div>';
+                performanceMessage.innerHTML = `
+          <p class="font-bold text-2xl text-green-600 mb-2">Luar Biasa Sempurna!</p>
+          <p>Kamu benar-benar memahami Pancasila dengan sangat baik! Terus amalkan nilai-nilainya dalam kehidupan sehari-hari. 🌟</p>
+        `;
+                createConfetti();
+            } else if (percentage >= 75) {
+                resultIcon.innerHTML = '<div class="text-7xl animate-bounce">⭐</div>';
+                performanceMessage.innerHTML = `
+          <p class="font-bold text-2xl text-blue-600 mb-2">Hebat Sekali!</p>
+          <p>Pemahaman kamu tentang Pancasila sudah sangat baik. Sedikit lagi untuk mencapai nilai sempurna! 💪</p>
+        `;
+            } else if (percentage >= 60) {
+                resultIcon.innerHTML = '<div class="text-7xl">👍</div>';
+                performanceMessage.innerHTML = `
+          <p class="font-bold text-2xl text-yellow-600 mb-2">Bagus!</p>
+          <p>Kamu sudah cukup memahami Pancasila. Tingkatkan lagi dengan mempelajari materi lebih dalam! 📚</p>
+        `;
+            } else {
+                resultIcon.innerHTML = '<div class="text-7xl">📖</div>';
+                performanceMessage.innerHTML = `
+          <p class="font-bold text-2xl text-orange-600 mb-2">Semangat Belajar!</p>
+          <p>Jangan berkecil hati! Mari pelajari kembali nilai-nilai Pancasila agar lebih paham. Kamu pasti bisa! 💪</p>
+        `;
+            }
+
+            // Calculate time taken
+            const timeTaken = Math.round((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(timeTaken / 60);
+            const seconds = timeTaken % 60;
+            console.log(`Waktu: ${minutes} menit ${seconds} detik`);
+        }
+
+        // Create Confetti Effect
+        function createConfetti() {
+            const colors = ['#DC2626', '#EF4444', '#FCD34D', '#10B981', '#3B82F6'];
+
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        // Restart Quiz
+        function restartQuiz() {
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('quiz-start').classList.remove('hidden');
+        }
+
+        // Check if coming from index page
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('startQuiz') === 'true') {
+                sessionStorage.removeItem('startQuiz');
+                // Optional: auto start quiz
+                // startQuiz();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
